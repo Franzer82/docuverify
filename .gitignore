@@ -1,0 +1,21 @@
+# Virtuelle Umgebung
+venv/
+
+# Rohdaten (werden über ein Skript heruntergeladen, nicht committet)
+data/SIDTD/
+
+# Trainierte Modelle (zu groß für GitHub, kommen später auf Hugging Face)
+models/
+
+# macOS-spezifische Systemdateien
+.DS_Store
+
+# Python Cache
+__pycache__/
+*.pyc
+
+# VS Code Einstellungen
+.vscode/
+
+# Geheime Schlüssel (API-Keys etc.)
+.env
