@@ -3,12 +3,18 @@ from pathlib import Path
 import numpy as np
 import torch
 import torch.nn as nn
+from huggingface_hub import hf_hub_download
 from PIL import Image
 from torchvision import models, transforms
 from pytorch_grad_cam import GradCAM
 from pytorch_grad_cam.utils.image import show_cam_on_image
 
-MODEL_PATH = Path("models/resnet50-country-split/best_model.pt")
+# Modell liegt auf dem Hugging Face Hub statt lokal - wichtig fuers
+# Deployment, da der lokale models/-Ordner bewusst nicht Teil des
+# GitHub-Repos ist (zu gross) und auf Streamlit Cloud ohnehin nicht
+# verfuegbar waere.
+HF_REPO_ID = "Franzer82/docuverify-resnet50"
+HF_FILENAME = "best_model.pt"
 
 IMAGE_SIZE = 224
 DEVICE = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
@@ -17,10 +23,6 @@ LABELS = {0: "echt", 1: "gefälscht"}
 
 
 def build_model():
-    """Muss exakt dieselbe Architektur wie beim Training sein (2 von 4
-    ResNet-Bloecken trainierbar - siehe train_classifier.py), damit die
-    gespeicherten Gewichte korrekt hineinpassen. Fuer reine Inferenz
-    spielt es keine Rolle, welche Teile beim Training eingefroren waren."""
     model = models.resnet50(weights=None)
     num_features = model.fc.in_features
     model.fc = nn.Sequential(
@@ -39,11 +41,13 @@ def build_eval_transform():
 
 
 def load_pipeline():
-    """Lädt Modell + Grad-CAM einmalig. Rückgabe als Dictionary, damit die
-    Streamlit-App das Ergebnis über @st.cache_resource wiederverwenden
-    kann, statt bei jeder Interaktion neu zu laden."""
+    """Lädt Modellgewichte automatisch von Hugging Face herunter (beim
+    ersten Aufruf; danach lokal zwischengespeichert unter ~/.cache/huggingface),
+    baut das Modell + Grad-CAM einmalig auf."""
+    weights_path = hf_hub_download(repo_id=HF_REPO_ID, filename=HF_FILENAME)
+
     model = build_model().to(DEVICE)
-    model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE, weights_only=True))
+    model.load_state_dict(torch.load(weights_path, map_location=DEVICE, weights_only=True))
     model.eval()
 
     target_layers = [model.layer4[-1]]
@@ -55,11 +59,6 @@ def load_pipeline():
 
 
 def predict_and_explain(image: Image.Image, pipeline: dict) -> dict:
-    """Führt Vorhersage UND Grad-CAM-Erklärung in einem Schritt aus.
-
-    Gibt zurück: die vorhergesagte Klasse, die Wahrscheinlichkeit für
-    'gefälscht', sowie ein Overlay-Bild (Original + Heatmap), das direkt
-    in der App angezeigt werden kann."""
     model = pipeline["model"]
     cam = pipeline["cam"]
     transform = pipeline["transform"]
@@ -75,8 +74,6 @@ def predict_and_explain(image: Image.Image, pipeline: dict) -> dict:
         predicted_class = int(torch.argmax(output, dim=1).item())
         fake_probability = probs[1].item()
 
-    # Grad-CAM braucht Gradienten, kann also NICHT unter torch.no_grad()
-    # berechnet werden - deshalb hier als separater Schritt danach.
     grayscale_cam = cam(input_tensor=input_tensor, targets=None)[0]
     rgb_array = np.array(original_resized, dtype=np.float32) / 255.0
     overlay = show_cam_on_image(rgb_array, grayscale_cam, use_rgb=True)

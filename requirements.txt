@@ -18,7 +18,11 @@ fsspec==2026.9.0
 glob2==0.7
 grad-cam==1.5.7
 h11==0.16.0
+hf-xet==1.6.0
+httpcore2==2.13.1
 httptools==0.8.0
+httpx2==2.13.1
+huggingface_hub==2.0.0
 idna==3.20
 ImageIO==2.37.4
 iniconfig==2.3.0
@@ -55,6 +59,7 @@ python-dateutil==2.9.0.post0
 python-math==0.0.1
 python-multipart==0.0.32
 python-time==0.3.0
+PyYAML==6.0.3
 random2==1.0.2
 referencing==0.37.0
 requests==2.34.2
@@ -75,6 +80,7 @@ torch==2.14.0
 torchaudio==2.11.0
 torchvision==0.29.0
 tqdm==4.70.1
+truststore==0.10.4
 ttach==0.0.3
 typing==3.7.4.3
 typing_extensions==4.16.0
