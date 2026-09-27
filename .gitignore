@@ -1,11 +1,21 @@
 # Virtuelle Umgebung
 venv/
 
-# Rohdaten (werden über ein Skript heruntergeladen, nicht committet)
+# Der komplette SIDTD-Datensatz (1,2 GB, liegt bei CVC Barcelona) - inkl.
+# des mitgeklonten SIDTD-Repos mit seinem eigenen .git-Ordner
 data/SIDTD/
 
-# Trainierte Modelle (zu groß für GitHub, kommen später auf Hugging Face)
+# Manifest/Splits enthalten absolute lokale Dateipfade - fuer andere
+# Rechner ohnehin nicht direkt nutzbar
+data/manifest.csv
+data/splits_random/
+data/splits_country/
+
+# Trainierte Modelle (zu gross fuer GitHub, werden auf Hugging Face gehostet)
 models/
+
+# Grad-CAM Beispielbilder (lokale Testausgaben, keine Projektdatei)
+data/gradcam_examples/
 
 # macOS-spezifische Systemdateien
 .DS_Store
@@ -17,5 +27,5 @@ __pycache__/
 # VS Code Einstellungen
 .vscode/
 
-# Geheime Schlüssel (API-Keys etc.)
+# Geheime Schlüssel (auch wenn dieses Projekt aktuell keine braucht)
 .env
